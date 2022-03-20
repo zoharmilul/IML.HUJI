@@ -1,4 +1,8 @@
 from __future__ import annotations
+
+import math
+
+import numpy
 import numpy as np
 from numpy.linalg import inv, det, slogdet
 
@@ -105,10 +109,11 @@ class UnivariateGaussian:
             log-likelihood calculated
         """
         # raise NotImplementedError()
+        scalar = (-len(X)/2)*numpy.log(2*math.pi*sigma*sigma)
         sum = 0.0
         for i in range(len(X)):
             sum += np.power(X[i]-mu, 2)
-        return (-1/(2*sigma))*sum
+        return scalar + (-1/(2*sigma*sigma))*sum
 
 
 class MultivariateGaussian:
@@ -154,10 +159,22 @@ class MultivariateGaussian:
         Sets `self.mu_`, `self.cov_` attributes according to calculated estimation.
         Then sets `self.fitted_` attribute to `True`
         """
-        raise NotImplementedError()
 
+        # raise NotImplementedError()
+
+        self.mu_ = np.mean(X, axis=0)
+        self.cov_ = np.cov(X, rowvar=False)
         self.fitted_ = True
         return self
+
+    def one_sample_pdf(self, sample:np.ndarray):
+        """
+        Calculate PDF for one sample
+        """
+        sigmaInv = np.linalg.inv(self.cov_)
+        sigmaDet = np.linalg.det(self.cov_)
+        multi = np.multiply(np.multiply(np.transpose(sample - self.cov_), sigmaInv), sample-self.cov_)
+        return multi/(math.pi*2*sigmaDet)
 
     def pdf(self, X: np.ndarray):
         """
@@ -179,7 +196,11 @@ class MultivariateGaussian:
         """
         if not self.fitted_:
             raise ValueError("Estimator must first be fitted before calling `pdf` function")
-        raise NotImplementedError()
+
+        pdfArr = np.apply_along_axis(self.one_sample_pdf, 1, X)
+        return pdfArr
+        # raise NotImplementedError()
+
 
     @staticmethod
     def log_likelihood(mu: np.ndarray, cov: np.ndarray, X: np.ndarray) -> float:
@@ -200,4 +221,6 @@ class MultivariateGaussian:
         log_likelihood: float
             log-likelihood calculated
         """
-        raise NotImplementedError()
+        # raise NotImplementedError()
+        scalar = -len(X)/2*(len(cov[0])*np.log(2*math.pi) + np.log(np.linalg.det(cov)))
+        return scalar -0.5*(np.dot(X-mu, inv(cov))*(X-mu)).sum()
