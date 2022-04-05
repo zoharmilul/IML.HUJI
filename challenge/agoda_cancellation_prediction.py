@@ -1,3 +1,6 @@
+import pandas
+from sklearn.base import BaseEstimator
+
 from challenge.agoda_cancellation_estimator import AgodaCancellationEstimator
 from IMLearn.utils import split_train_test
 
@@ -21,15 +24,17 @@ def load_data(filename: str):
     3) Tuple of ndarray of shape (n_samples, n_features) and ndarray of shape (n_samples,)
     """
     # TODO - replace below code with any desired preprocessing
-    full_data = pd.read_csv(filename).dropna().drop_duplicates()
-    features = full_data[["h_booking_id",
-                          "hotel_id",
-                          "accommadation_type_name",
-                          "hotel_star_rating",
-                          "customer_nationality"]]
-    labels = full_data["cancellation_datetime"]
+    full_data = pd.read_csv("C:/Users/User/PycharmProjects/IML.HUJI/datasets/agoda_cancellation_train.csv").dropna(inplace=True).drop_duplicates()
+    np.where(full_data["cancellation_datetime"] == "", 0, 1)
+    full_data.loc[["cancellation_datetime"]].head()
+    # features = full_data[["h_booking_id",
+    #                       "hotel_id",
+    #                       "accommadation_type_name",
+    #                       "hotel_star_rating",
+    #                       "customer_nationality"]]
+    # labels = full_data["cancellation_datetime"]
 
-    return features, labels
+    # return features, labels
 
 
 def evaluate_and_export(estimator: BaseEstimator, X: np.ndarray, filename: str):
@@ -58,11 +63,12 @@ if __name__ == '__main__':
     np.random.seed(0)
 
     # Load data
-    df, cancellation_labels = load_data("../datasets/agoda_cancellation_train.csv")
-    train_X, train_y, test_X, test_y = split_train_test(df, cancellation_labels)
-
-    # Fit model over data
-    estimator = AgodaCancellationEstimator().fit(train_X, train_y)
-
-    # Store model predictions over test set
-    evaluate_and_export(estimator, test_X, "id1_id2_id3.csv")
+    # df, cancellation_labels = load_data("datasets/agoda_cancellation_train.csv")
+    # train_X, train_y, test_X, test_y = split_train_test(df, cancellation_labels)
+    #
+    # # Fit model over data
+    # estimator = AgodaCancellationEstimator().fit(train_X, train_y)
+    #
+    # # Store model predictions over test set
+    # evaluate_and_export(estimator, test_X, "id1_id2_id3.csv")
+    load_data("a")

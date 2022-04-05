@@ -1,3 +1,6 @@
+import numpy
+import pandas
+
 from IMLearn.utils import split_train_test
 from IMLearn.learners.regressors import LinearRegression
 
@@ -23,7 +26,24 @@ def load_data(filename: str):
     Design matrix and response vector (prices) - either as a single
     DataFrame or a Tuple[DataFrame, Series]
     """
-    raise NotImplementedError()
+    house_price = pandas.read_csv(filename)
+    house_price.dropna()
+    house_price.drop(["long", "lat", "id","date"], axis=1, inplace=True)
+    house_price = house_price[(house_price["sqft_living15"] > 0) &
+                     (house_price["sqft_lot15"] > 0) &
+                     (house_price["sqft_living"] > 0) &
+                     (house_price["sqft_lot"] > 0) &
+                      (house_price["price"] > 0)]
+
+    house_price = pd.get_dummies(data=house_price, columns=["zipcode"], drop_first=True)
+    house_price["date"] = house_price["date"].str[:4]
+    house_price = house_price[:].astype(float)
+    house_price = house_price[(house_price >= 0).all(1)]
+    house_price.head()
+    print(house_price)
+    return house_price
+    # raise NotImplementedError()
+
 
 
 def feature_evaluation(X: pd.DataFrame, y: pd.Series, output_path: str = ".") -> NoReturn:
@@ -43,19 +63,35 @@ def feature_evaluation(X: pd.DataFrame, y: pd.Series, output_path: str = ".") ->
     output_path: str (default ".")
         Path to folder in which plots are saved
     """
-    raise NotImplementedError()
+
+    for feature in X.columns:
+        corelation = y.cov(X[feature])/(numpy.std(X[feature])*numpy.std(y))
+        print(corelation)
+        fig = go.Figure()
+        fig.update_layout(
+            title= f"House prices in respect for: {feature}, {round(corelation,2)}",
+            xaxis_title=f"{feature}",
+            yaxis_title="Prices"
+        )
+        fig.add_scatter(x=X[feature],y=y, mode="markers")
+        # fig.write_image(f'{output_path}/{feature}.png')
+    # raise NotImplementedError()
 
 
 if __name__ == '__main__':
     np.random.seed(0)
     # Question 1 - Load and preprocessing of housing prices dataset
-    raise NotImplementedError()
+    house_price = load_data("C:/Users/User/PycharmProjects/IML.HUJI/datasets/house_prices.csv")
+    response = house_price["price"]
+    # raise NotImplementedError()
 
     # Question 2 - Feature evaluation with respect to response
-    raise NotImplementedError()
+    feature_evaluation(house_price, response)
+    # raise NotImplementedError()
 
     # Question 3 - Split samples into training- and testing sets.
-    raise NotImplementedError()
+    trainX, trainY, testX, testY = split_train_test(house_price,response)
+    # raise NotImplementedError()
 
     # Question 4 - Fit model over increasing percentages of the overall training data
     # For every percentage p in 10%, 11%, ..., 100%, repeat the following 10 times:
@@ -64,4 +100,4 @@ if __name__ == '__main__':
     #   3) Test fitted model over test set
     #   4) Store average and variance of loss over test set
     # Then plot average loss as function of training size with error ribbon of size (mean-2*std, mean+2*std)
-    raise NotImplementedError()
+    # raise NotImplementedError()

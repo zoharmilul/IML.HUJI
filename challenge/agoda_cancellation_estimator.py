@@ -1,5 +1,9 @@
 from __future__ import annotations
 from typing import NoReturn
+
+import sklearn.linear_model
+from sklearn.linear_model import LogisticRegression
+import pandas
 from IMLearn.base import BaseEstimator
 import numpy as np
 
@@ -24,6 +28,8 @@ class AgodaCancellationEstimator(BaseEstimator):
         super().__init__()
 
     def _fit(self, X: np.ndarray, y: np.ndarray) -> NoReturn:
+
+
         """
         Fit an estimator for given samples
 
