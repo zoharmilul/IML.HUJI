@@ -28,7 +28,7 @@ def load_data(filename: str):
     """
     house_price = pandas.read_csv(filename)
     house_price.dropna()
-    house_price.drop(["long", "lat", "id","date"], axis=1, inplace=True)
+    house_price.drop(["long", "lat", "id", "date"], axis=1, inplace=True)
     house_price = house_price[(house_price["sqft_living15"] > 0) &
                      (house_price["sqft_lot15"] > 0) &
                      (house_price["sqft_living"] > 0) &
@@ -36,11 +36,9 @@ def load_data(filename: str):
                       (house_price["price"] > 0)]
 
     house_price = pd.get_dummies(data=house_price, columns=["zipcode"], drop_first=True)
-    house_price["date"] = house_price["date"].str[:4]
     house_price = house_price[:].astype(float)
     house_price = house_price[(house_price >= 0).all(1)]
     house_price.head()
-    print(house_price)
     return house_price
     # raise NotImplementedError()
 
@@ -66,15 +64,14 @@ def feature_evaluation(X: pd.DataFrame, y: pd.Series, output_path: str = ".") ->
 
     for feature in X.columns:
         corelation = y.cov(X[feature])/(numpy.std(X[feature])*numpy.std(y))
-        print(corelation)
         fig = go.Figure()
         fig.update_layout(
-            title= f"House prices in respect for: {feature}, {round(corelation,2)}",
+            title= f"House prices in respect for: {feature}, {corelation,2}",
             xaxis_title=f"{feature}",
             yaxis_title="Prices"
         )
         fig.add_scatter(x=X[feature],y=y, mode="markers")
-        # fig.write_image(f'{output_path}/{feature}.png')
+        fig.write_image(f'{output_path}/{feature}.png')
     # raise NotImplementedError()
 
 
@@ -90,10 +87,42 @@ if __name__ == '__main__':
     # raise NotImplementedError()
 
     # Question 3 - Split samples into training- and testing sets.
-    trainX, trainY, testX, testY = split_train_test(house_price,response)
+    trainX, trainY, testX, testY = split_train_test(house_price.drop(columns="price"), response)
     # raise NotImplementedError()
 
     # Question 4 - Fit model over increasing percentages of the overall training data
+    avg_loss = []
+    std_loss = []
+    percentage = [_ for _ in range(10, 101)]
+    lin_regression = LinearRegression(True)
+    for p in percentage:
+        curr_loss = []
+        for _ in range(10):
+            X_sample = trainX.sample(frac=p/100)
+            y_sample = trainY[X_sample.index]
+            lin_regression.fit(X_sample.to_numpy(), y_sample.to_numpy())
+            curr_loss.append(lin_regression.loss(testX.to_numpy(), testY.to_numpy()))
+        avg_loss.append(numpy.mean(curr_loss))
+        std_loss.append(numpy.std(curr_loss))
+    fig = go.Figure()
+    fig.add_scatter(name="Loss mean with p% from training set",
+                    x=percentage,
+                    y=avg_loss,
+                    mode="markers+lines")
+    fig.add_scatter(x=percentage,
+                    y=np.asarray(avg_loss)-2*np.asarray(std_loss),
+                    fill=None,
+                    mode="lines",
+                    marker=dict(color="lightgrey"),
+                    showlegend=False)
+    fig.add_scatter(x=percentage,
+                    y=np.asarray(avg_loss) + 2 * np.asarray(std_loss),
+                    fill="tonexty",
+                    mode="lines",
+                    marker=dict(color="lightgrey"),
+                    showlegend=False)
+    fig.show()
+
     # For every percentage p in 10%, 11%, ..., 100%, repeat the following 10 times:
     #   1) Sample p% of the overall training data
     #   2) Fit linear model (including intercept) over sampled set
