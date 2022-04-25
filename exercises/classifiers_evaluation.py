@@ -38,14 +38,20 @@ def run_perceptron():
     """
     for n, f in [("Linearly Separable", "linearly_separable.npy"), ("Linearly Inseparable", "linearly_inseparable.npy")]:
         # Load dataset
-        raise NotImplementedError()
-
+        ds = np.load(f"../datasets/{f}")
         # Fit Perceptron and record loss in each fit iteration
         losses = []
-        raise NotImplementedError()
-
+        X = ds[:, :-1]
+        y = ds[:, -1:]
+        perp = Perceptron(callback=lambda p, x, i: losses.append(p.loss(x, i)))
+        perp.fit(X, y)
         # Plot figure
-        raise NotImplementedError()
+        fig = go.Figure()
+        fig.add_scatter(x=[_ + 1 for _ in range(len(losses))], y=losses)
+        fig.show()
+
+        print(losses)
+        # raise NotImplementedError()
 
 
 def compare_gaussian_classifiers():
@@ -68,4 +74,4 @@ def compare_gaussian_classifiers():
 if __name__ == '__main__':
     np.random.seed(0)
     run_perceptron()
-    compare_gaussian_classifiers()
+    # compare_gaussian_classifiers()
