@@ -65,8 +65,7 @@ def feature_evaluation(X: pd.DataFrame, y: pd.Series, output_path: str = ".") ->
     for feature in X.columns:
         corelation = y.cov(X[feature])/(numpy.std(X[feature])*numpy.std(y))
         fig = go.Figure()
-        fig.update_layout(
-            title= f"House prices in respect for: {feature}, {corelation,2}",
+        fig.update_layout(title= f"House prices in respect for: {feature}, {corelation,2}",
             xaxis_title=f"{feature}",
             yaxis_title="Prices"
         )

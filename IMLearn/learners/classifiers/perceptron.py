@@ -94,21 +94,20 @@ class Perceptron(BaseEstimator):
         """
         self.fitted_ = True
         if self.include_intercept_:
-            X = np.c_[np.ones(len(X)), X]
+            intercept = np.ones(len(X)).reshape(len(X), 1)
+            X = np.concatenate((intercept, X), axis=1)
 
         self.coefs_ = np.zeros(len(X[0]))
 
         for i in range(self.max_iter_):
             flag = False
-            counter = 0
             for j, xj in enumerate(X):
-                if y[j] * np.dot(self.coefs_, xj) <= 0:
-                    counter += 1
-                    self.callback_(self, xj, y[j])
+                if y[j] * np.inner(self.coefs_, xj) <= 0:
+                    flag = True
                     self.coefs_ += y[j] * xj
-                flag = True if counter == 0 else False
-            if flag:
-                break
+                    self.callback_(self, xj, y[j])
+                if flag:
+                    break
 
 
     def _predict(self, X: np.ndarray) -> np.ndarray:
@@ -125,9 +124,11 @@ class Perceptron(BaseEstimator):
         responses : ndarray of shape (n_samples, )
             Predicted responses of given samples
         """
-        # if self.include_intercept_:
-        #     X = np.c_[np.ones(len(X)), X]
-        return X @ self.coefs_
+        if self.include_intercept_:
+            intercept = np.ones(len(X)).reshape(len(X), 1)
+            X = np.concatenate((intercept, X), axis=1)
+
+        return np.sign(np.dot(X, self.coefs_))
 
     def _loss(self, X: np.ndarray, y: np.ndarray) -> float:
         """
@@ -146,4 +147,4 @@ class Perceptron(BaseEstimator):
         loss : float
             Performance under missclassification loss function
         """
-        return lf.misclassification_error(self.predict(X), y)
+        return lf.misclassification_error(y, self.predict(X))

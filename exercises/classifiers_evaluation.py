@@ -43,14 +43,16 @@ def run_perceptron():
         losses = []
         X = ds[:, :-1]
         y = ds[:, -1:]
-        perp = Perceptron(callback=lambda p, x, i: losses.append(p.loss(x, i)))
+        perp = Perceptron(callback=lambda p, x, i: losses.append(p.loss(X, y)))
         perp.fit(X, y)
         # Plot figure
         fig = go.Figure()
         fig.add_scatter(x=[_ + 1 for _ in range(len(losses))], y=losses)
+        fig.update_layout(title= f"{n}",
+            xaxis_title=f"Number of Perceptron Iterations",
+            yaxis_title="Loss"
+        )
         fig.show()
-
-        print(losses)
         # raise NotImplementedError()
 
 
