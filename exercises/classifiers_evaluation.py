@@ -34,6 +34,7 @@ def get_ellipse(mu: np.ndarray, cov: np.ndarray):
 
     return go.Scatter(x=mu[0] + xs, y=mu[1] + ys, mode="lines", marker_color="black")
 
+
 def load_dataset(filename: str) -> Tuple[np.ndarray, np.ndarray]:
     """
     Load dataset for comparing the Gaussian Naive Bayes and LDA classifiers. File is assumed to be an
@@ -67,7 +68,8 @@ def run_perceptron():
     Create a line plot that shows the perceptron algorithm's training loss values (y-axis)
     as a function of the training iterations (x-axis).
     """
-    for n, f in [("Linearly Separable", "linearly_separable.npy"), ("Linearly Inseparable", "linearly_inseparable.npy")]:
+    for n, f in [("Linearly Separable", "linearly_separable.npy"),
+                 ("Linearly Inseparable", "linearly_inseparable.npy")]:
         # Load dataset
         X, y = load_dataset(f"../datasets/{f}")
         # Fit Perceptron and record loss in each fit iteration
@@ -78,10 +80,10 @@ def run_perceptron():
         # Plot figure
         fig = go.Figure()
         fig.add_scatter(x=[_ + 1 for _ in range(len(losses))], y=losses)
-        fig.update_layout(title= f"{n}",
-            xaxis_title=f"Number of Perceptron Iterations",
-            yaxis_title="Loss"
-        )
+        fig.update_layout(title=f"{n}",
+                          xaxis_title=f"Number of Perceptron Iterations",
+                          yaxis_title="Loss"
+                          )
         fig.show()
         # raise NotImplementedError()
 
@@ -106,11 +108,10 @@ def compare_gaussian_classifiers():
         # on the right. Plot title should specify dataset used and subplot titles should specify algorithm and accuracy
         # from IMLearn.metrics import accuracy
 
-
         fig = make_subplots(rows=1, cols=2, subplot_titles=(
             rf"$\textbf{{ NGB with accuracy {loss_functions.accuracy(y, gnb_pred)} }}$",
             rf"$\textbf{{ LDA with accuracy {loss_functions.accuracy(y, lda_pred)} }}$"
-            ))
+        ))
 
         # left graph
         fig.add_trace(go.Scatter(x=X[:, 0], y=X[:, 1], mode="markers", showlegend=False,
@@ -151,3 +152,16 @@ if __name__ == '__main__':
     np.random.seed(0)
     run_perceptron()
     compare_gaussian_classifiers()
+    #
+    # quiz
+    # X = np.array([(0, 0), (1, 0), (2, 1), (3, 1), (4, 1), (5, 1), (6, 2), (7, 2)])
+    # gnb = GaussianNaiveBayes()
+    # gnb.fit(X[:, 0], X[:, 1])
+    # print(gnb.pi_[0])
+    # print(gnb.mu_[1])
+    # X2 = np.array([(1, 1, 0), (1, 2, 0), (2, 3, 1), (2, 4, 1), (3, 3, 1), (3, 4, 1)])
+    # gnb.fit(X2[:, :-1], X2[:, -1].reshape(len(X2),1))
+    # print(gnb.vars_[0][0])
+    # print(gnb.vars_[1][1])
+    # print(gnb.vars_)
+

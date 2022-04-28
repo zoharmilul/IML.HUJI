@@ -45,17 +45,18 @@ class GaussianNaiveBayes(BaseEstimator):
         """
 
         self.classes_, amount_in_clas = np.unique(y, return_counts=True)
-        self.mu_ = []
-        self.vars_ = []
-        for clas in self.classes_:
-            a = [X[y == clas].mean(axis=0)]
-            self.mu_.append(a[0])
-            b = [X[y == clas].var(axis=0)]
-            self.vars_.append(b[0])
+        num_class = self.classes_.shape[0]
+        num_features = X.shape[1]
+        num_samples = y.shape[0]
+        self.mu_ = np.ndarray(shape=(num_class, num_features))
+        self.vars_ = np.ndarray(shape=(num_class, num_features))
+        self.pi_ = np.ndarray(num_samples)
+        for i, k in enumerate(self.classes_):
+            xk = X[np.where(y == k)]
+            self.mu_[i] = np.mean(xk, axis=0)
+            self.pi_[i] = xk.shape[0] / y.shape[0]
+            self.vars_[i] = np.var(xk, axis=0, ddof=1)
 
-        self.vars_ = np.array(self.vars_)
-        self.mu_ = np.array(self.mu_)
-        self.pi_ = np.array([(i / y.shape[0]) for i in amount_in_clas])
         # raise NotImplementedError()
 
     def _predict(self, X: np.ndarray) -> np.ndarray:
