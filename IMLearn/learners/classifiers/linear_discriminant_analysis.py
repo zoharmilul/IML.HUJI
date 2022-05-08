@@ -46,7 +46,23 @@ class LDA(BaseEstimator):
         y : ndarray of shape (n_samples, )
             Responses of input data to fit to
         """
-        raise NotImplementedError()
+        self.classes_ = len(np.unique(y))
+        n = [np.count_nonzero(y == i) for i in range(self.classes_)]
+        mu_mle = []
+        for k in range(self.classes_):
+            indicate = (y == np.array([k] * len(y)))
+            mu_mle.append(np.sum([indicate[i] * X[i] for i in range(len(X))], axis=0) * (1 / n[k]))
+
+        self.mu_ = np.array(mu_mle)
+
+        temp_cov = []
+        for i in range(len(X)):
+            vec = X[i] - self.mu_[int(y[i])]
+            temp_cov.append(np.outer(vec, vec))
+
+        self.cov_ = np.array(np.sum(temp_cov, axis=0)) * (1 / len(X))
+        self.pi_ = [n[i] / len(y) for i in range(self.classes_)]
+        self._cov_inv = np.linalg.inv(self.cov_)
 
     def _predict(self, X: np.ndarray) -> np.ndarray:
         """
@@ -62,7 +78,10 @@ class LDA(BaseEstimator):
         responses : ndarray of shape (n_samples, )
             Predicted responses of given samples
         """
-        raise NotImplementedError()
+        likely = self.likelihood(X)
+        ans = np.array([np.argmax(i) for i in likely])
+        return ans
+
 
     def likelihood(self, X: np.ndarray) -> np.ndarray:
         """
@@ -82,7 +101,12 @@ class LDA(BaseEstimator):
         if not self.fitted_:
             raise ValueError("Estimator must first be fitted before calling `likelihood` function")
 
-        raise NotImplementedError()
+        likely = []
+        for k in range(self.classes_):
+            ak = self._cov_inv @ self.mu_[k]
+            bk = np.log(self.pi_[k]) - 0.5 * (self.mu_[k] @ self._cov_inv @ self.mu_[k])
+            likely.append(ak @ X.T + bk)
+        return np.array(likely).T
 
     def _loss(self, X: np.ndarray, y: np.ndarray) -> float:
         """
@@ -102,4 +126,4 @@ class LDA(BaseEstimator):
             Performance under missclassification loss function
         """
         from ...metrics import misclassification_error
-        raise NotImplementedError()
+        return misclassification_error(y, self.predict(X))
