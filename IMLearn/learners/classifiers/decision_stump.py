@@ -4,6 +4,7 @@ import math
 from typing import Tuple, NoReturn
 from ...base import BaseEstimator
 import numpy as np
+import IMLearn.metrics.loss_functions as lf
 from itertools import product
 
 
@@ -42,15 +43,24 @@ class DecisionStump(BaseEstimator):
         y : ndarray of shape (n_samples, )
             Responses of input data to fit to
         """
-        self.sign_ = 1
         losses = []
         vals = []
+        signs = []
         for i in range(len(X[0])):
-            temp = self._find_threshold(X[:, i], y, self.sign_)
-            vals.append(temp[0])
-            losses.append(temp[1])
+            temp1 = self._find_threshold(X[:, i], y, 1)
+            temp2 = self._find_threshold(X[:, i], y, -1)
+            if temp2[1] < temp1[1]:
+                vals.append(temp2[0])
+                losses.append(temp2[1])
+                signs.append(-1)
+            else:
+                vals.append(temp1[0])
+                losses.append(temp1[1])
+                signs.append(1)
+
         self.j_ = np.argmin(losses)
         self.threshold_ = vals[self.j_]
+        self.sign_ = signs[self.j_]
 
     def _predict(self, X: np.ndarray) -> np.ndarray:
         """
@@ -74,14 +84,8 @@ class DecisionStump(BaseEstimator):
         Feature values strictly below threshold are predicted as `-sign` whereas values which equal
         to or above the threshold are predicted as `sign`
         """
-        response = []
-        for val in X[:self.j_]:
-            if val >= self.threshold_:
-                response.append(self.sign_)
-            else:
-                response.append(-1 * self.sign_)
 
-        return np.asarray(response)
+        return np.where(X[:, self.j_] >= self.threshold_, self.sign_, -self.sign_)
 
     def _find_threshold(self, values: np.ndarray, labels: np.ndarray, sign: int) -> Tuple[float, float]:
         """
@@ -114,21 +118,31 @@ class DecisionStump(BaseEstimator):
         which equal to or above the threshold are predicted as `sign`
         """
 
-        min_loss = math.inf
-        thresh = 0
-        pred = lambda arr, th: [sign if arr[i] >= th else -sign for i in range(len(arr))]
-        loss = lambda y_pred, y_true: np.sum([np.abs(y_true[i]) if np.sign(y_true[i]) == np.sign(y_pred[i])
-                                              else 0 for i in range(len(y_true))])
+        p = np.argsort(values)
+        values = values[p]
+        labels = labels[p]
+        curr_loss = self.wieghted_loss(np.ones(len(labels))*sign, labels)
+        loss = curr_loss
+        thresh_ind = 0
 
-        for val in values:
-            temp_thresh = val
-            temp_pred = pred(values, temp_thresh)
-            temp_loss = loss(temp_pred, labels)
-            if temp_loss < min_loss:
-                min_loss = temp_loss
-                thresh = val
+        for i in range(len(values)):
+            if i > 0:
+                if np.sign(labels[i-1]) == sign:
+                    curr_loss += np.abs(labels[i-1])
+                else:
+                    curr_loss -= np.abs(labels[i-1])
+            if curr_loss < loss:
+                loss = curr_loss
+                thresh_ind = i
 
-        return thresh, min_loss
+        return values[thresh_ind], loss/np.sum(np.abs(labels))
+
+    def wieghted_loss(self, y_pred, y_true):
+        loss = 0
+        for i, val in enumerate(y_true):
+            if np.sign(val) != y_pred[i]:
+                loss += np.abs(val)
+        return loss
 
     def _loss(self, X: np.ndarray, y: np.ndarray) -> float:
         """
@@ -148,6 +162,5 @@ class DecisionStump(BaseEstimator):
             Performance under missclassification loss function
         """
         y_pred = self.predict(X)
-        loss = np.sum([np.abs(y[i]) if np.sign(y[i]) == np.sign(y_pred[i])
-                       else 0 for i in range(len(y))])
+        loss = lf.misclassification_error(y, y_pred)
         return float(loss)
