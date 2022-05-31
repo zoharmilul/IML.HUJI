@@ -59,6 +59,8 @@ class RidgeRegression(BaseEstimator):
         -----
         Fits model with or without an intercept depending on value of `self.include_intercept_`
         """
+
+
         raise NotImplementedError()
 
     def _predict(self, X: np.ndarray) -> np.ndarray:
