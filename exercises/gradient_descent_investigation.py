@@ -57,7 +57,7 @@ def plot_descent_path(module: Type[BaseModule],
                                       title=f"GD Descent Path {title}"))
 
 
-def get_gd_state_recorder_callback() -> Tuple[Callable[[], None], List[np.ndarray], List[np.ndarray]]:
+def get_gd_state_recorder_callback() -> Tuple[Callable[[...], None], List[np.ndarray], List[np.ndarray]]:
     """
     Callback generator for the GradientDescent class, recording the objective's value and parameters at each iteration
 
@@ -73,12 +73,31 @@ def get_gd_state_recorder_callback() -> Tuple[Callable[[], None], List[np.ndarra
     weights: List[np.ndarray]
         Recorded parameters
     """
-    raise NotImplementedError()
+
+    vaules = []
+    wieghts = []
+    callback = lambda GradientDescent, wieght, val, t, eta, norm : {
+        vaules.append(val),
+        wieghts.append(wieght)
+    }
+    return callback, vaules, wieghts
+
 
 
 def compare_fixed_learning_rates(init: np.ndarray = np.array([np.sqrt(2), np.e / 3]),
                                  etas: Tuple[float] = (1, .1, .01, .001)):
-    raise NotImplementedError()
+    l1_min = []
+    l2_min = []
+    for eta in etas:
+        l1_gd = GradientDescent(FixedLR(eta),out_type="best",callback=get_gd_state_recorder_callback())
+        l2_gd = GradientDescent(FixedLR(eta), out_type="best", callback=get_gd_state_recorder_callback())
+        l1 = L1(init)
+        l2 = L2(init)
+        l1_vals, l1_weights = l1_gd.fit(l1,None,None)
+        l2_vals, l2_weights = l2_gd.fit(l2, None, None)
+        l1_min.append(l1.weights_)
+        l2_min.append(l2.weights_)
+
 
 
 def compare_exponential_decay_rates(init: np.ndarray = np.array([np.sqrt(2), np.e / 3]),
