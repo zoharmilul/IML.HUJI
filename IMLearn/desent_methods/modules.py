@@ -33,7 +33,7 @@ class L2(BaseModule):
         output: ndarray of shape (1,)
             Value of function at point self.weights
         """
-        return np.sqrt(np.sum(self.weights**2))
+        return (np.linalg.norm(self.weights_)**2)/2
 
     def compute_jacobian(self, **kwargs) -> np.ndarray:
         """
@@ -49,8 +49,7 @@ class L2(BaseModule):
         output: ndarray of shape (n_in,)
             L2 derivative with respect to self.weights at point self.weights
         """
-        norm = np.sqrt(np.sum(self.weights**2))
-        return (1/norm)*self.weights
+        return self.weights_
 
 
 class L1(BaseModule):

@@ -120,28 +120,33 @@ class GradientDescent:
 
         """
 
-        curr = f.weights
-        prev = curr
-        best = prev
-        average = curr
+        prev = f.weights
+        best_val = f.compute_output()
+        best_weights = prev
+        average = prev
         counter = 0
         for i in range(self.max_iter_):
 
-            if i > 0 and np.linalg.norm(curr - prev) <= self.tol_:
+            if i > 0 and np.linalg.norm(f.weights - prev) <= self.tol_:
                 break
 
-            if f.compute_output(curr) <= f.compute_output(best):
-                best = curr
+            if f.compute_output() <= best_val:
+                best_weights = f.weights
+                best_val = f.compute_output()
 
             counter += 1
-            prev = curr
-            curr = prev - self.learning_rate_.lr_step(i)*f.compute_jacobian(curr)
-            average += curr
-
-            self.callback_(self, curr)       # todo dafuq?
-
+            prev = f.weights
+            eta = self.learning_rate_.lr_step(i)
+            self.callback_(self, f.weights,
+                           f.compute_output(),
+                           f.compute_output(),
+                           i,
+                           eta,
+                           np.norm(f.weights - prev))
+            f.weights = prev - eta*f.compute_jacobian(prev)
+            average += f.weights
         return {
-            self.out_type_ == "last": curr,
-            self.out_type_ == "best": best,
+            self.out_type_ == "last": f.weights,
+            self.out_type_ == "best": best_weights,
             self.out_type_ == "average": average/counter
         }
