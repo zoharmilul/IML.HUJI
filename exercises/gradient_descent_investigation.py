@@ -89,14 +89,14 @@ def compare_fixed_learning_rates(init: np.ndarray = np.array([np.sqrt(2), np.e /
     l1_min = []
     l2_min = []
     for eta in etas:
-        l1_gd = GradientDescent(FixedLR(eta),out_type="best",callback=get_gd_state_recorder_callback())
-        l2_gd = GradientDescent(FixedLR(eta), out_type="best", callback=get_gd_state_recorder_callback())
+        l1_gd = GradientDescent(FixedLR(eta),out_type="best",callback=get_gd_state_recorder_callback()[0])
+        l2_gd = GradientDescent(FixedLR(eta), out_type="best", callback=get_gd_state_recorder_callback()[0])
         l1 = L1(init)
         l2 = L2(init)
-        l1_vals, l1_weights = l1_gd.fit(l1,None,None)
-        l2_vals, l2_weights = l2_gd.fit(l2, None, None)
-        l1_min.append(l1.weights_)
-        l2_min.append(l2.weights_)
+        l1_vals, l1_weights = l1_gd.fit(l1,None, None)
+        l2_vals, l2_weights = l2_gd.fit(l2,None, None)
+        l1_min.append([l1_vals, l1_weights])
+        l2_min.append([l2_vals, l2_weights])
 
 
 
